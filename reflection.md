@@ -10,11 +10,17 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 
 Bugs found and fixed:
 
-1. **Hints were backwards** — the `check_guess` function returned "Go HIGHER!" when the guess was too high and "Go LOWER!" when it was too low. The messages for "Too High" and "Too Low" were swapped, so every hint pointed the player in the wrong direction.
+1. **Hints were backwards**
+   - **Expected:** When my guess was too high, the hint should say "Go LOWER!" to guide me down toward the secret number.
+   - **Actual:** The hint said "Go HIGHER!", pointing me in the wrong direction. The messages for "Too High" and "Too Low" were swapped inside `check_guess`, so every hint was the opposite of what it should have been.
 
-2. **Score was miscalculated on even attempts** — the `update_score` function secretly added 5 points when the outcome was "Too High" on even-numbered attempts, instead of subtracting 5 like every other wrong guess. This caused the score to jump unexpectedly and made the final score inconsistent with what the player expected.
+2. **Score was miscalculated on even attempts**
+   - **Expected:** Every wrong guess (whether too high or too low) should subtract 5 points from my score consistently.
+   - **Actual:** On even-numbered attempts where the guess was "Too High", the `update_score` function added 5 points instead of subtracting them. This caused the score to jump up unexpectedly and made the final score inconsistent with what I had earned.
 
-3. **Attempts counter started at 1 instead of 0** — `st.session_state.attempts` was initialized to `1`, so the very first guess incremented it to `2`, and the "Attempts left" display was always off by one before any guess was even made.
+3. **Attempts counter started at 1 instead of 0**
+   - **Expected:** Before making any guess, the "Attempts left" display should show the full number of allowed attempts (e.g., 8 for Normal difficulty).
+   - **Actual:** `st.session_state.attempts` was initialized to `1` instead of `0`, so the counter was already off by one before the first guess. The display showed one fewer attempt remaining than was actually the case from the very start.
 
 ---
 
@@ -24,9 +30,11 @@ Bugs found and fixed:
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
 - Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
 
-I used Claude as my preferred AI tool for this. I think when I was playing the game, I realized there were a few problems in the functioning of the application. I referred those parts to Claude and asked it to explain where the function was and what that function was doing to understand if it was serving its intended purpose.
+I used Claude (via Claude Code) as my primary AI tool for this project. When I noticed strange behavior while playing, I shared `app.py` with Claude and asked it to explain specific functions step-by-step to understand whether they were working as intended.
 
-All the "solutions/guidance" that the AI gave me in this case was correct, and it was to the point and did not hallucinate on this codebase. 
+**Correct AI suggestion:** When I described that the hints felt backwards, I asked Claude to explain the `check_guess` function line by line. It correctly identified that the emoji-message pairs for "Too High" and "Too Low" were swapped — "📉 Go LOWER!" was being returned for a "Too High" outcome and vice versa. I verified this by manually tracing through the function with a guess of 90 against a secret of 50: `90 > 50` is true, so it should return "Too High" with "Go LOWER!", but the code returned "Go HIGHER!" instead. That confirmed the AI's explanation was right.
+
+**Misleading AI suggestion:** I highlighted the `TypeError` exception block inside `check_guess` (lines 41–47 in `app.py`) and asked Claude what it was for. Claude explained it as a useful defensive safety guard — "in case a non-integer value slips through, this block handles string comparisons as a fallback." That sounded reasonable, but it was misleading. I checked `parse_guess`, which already ensures only valid integers ever reach `check_guess` — so that block is dead code that can never actually run. The AI framed it as intentional defensive programming when it was really just confusing noise. I verified this by tracing the full call path: `parse_guess` returns `(False, None, error)` for any non-integer input, and the submit handler only calls `check_guess` when `ok` is `True`, meaning a valid integer is always guaranteed.
 ---
 
 ## 3. Debugging and testing your fixes
