@@ -40,9 +40,15 @@ I used Claude (via Claude Code) as my primary AI tool for this project. When I n
 ## 3. Debugging and testing your fixes
 
 - How did you decide whether a bug was really fixed?
-- Describe at least one test you ran (manual or using pytest)  
+- Describe at least one test you ran (manual or using pytest)
   and what it showed you about your code.
 - Did AI help you design or understand any tests? How?
+
+I used two layers of verification for each fix: automated pytest tests and manual play in the live Streamlit app. A bug wasn't considered fixed until both layers agreed — a passing test confirmed the logic was correct, and a manual play-through confirmed the UI reflected that logic correctly.
+
+For the hints bug, I wrote `test_too_high_not_too_low` and `test_too_low_not_too_high` in `tests/test_game_logic.py`. These tests call `check_guess` directly with extreme values (e.g., guess of 90 against a secret of 10) and assert that the outcome is never swapped. When I ran `pytest` after moving `check_guess` into `logic_utils.py`, all 11 tests passed, which confirmed that the fix was correct and that the refactor didn't break anything. For the score bug, I wrote `test_score_decreases_on_even_attempt`, which calls `update_score(100, "Too High", 4)` — an even-numbered attempt — and asserts the result is 95, not 105. This directly targeted the original misbehavior.
+
+Claude helped design the test structure by suggesting that the best way to catch the hints bug was to assert the *negation* (e.g., "Too High must never return Too Low") rather than just checking the happy path. That made the tests more robust because they would catch the bug even if the exact message text changed in the future.
 
 ---
 
