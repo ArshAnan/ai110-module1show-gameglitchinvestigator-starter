@@ -58,6 +58,12 @@ Claude helped design the test structure by suggesting that the best way to catch
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
 - What change did you make that finally gave the game a stable secret number?
 
+In the original app, the secret number was generated with `random.randint(low, high)` at the top level of the script with no guard around it. Every time Streamlit reruns the script — which happens on every button click, every input change, every interaction — that line executes again and picks a new random number. So the secret was never stable; it changed on every guess.
+
+Streamlit works differently from a normal Python program. Instead of running once and waiting, it reruns the entire script from top to bottom every time anything on the page changes. Think of it like refreshing a webpage — the whole page reloads. Session state is Streamlit's way of letting you save values across those reloads. It's like a small locker that survives each rerun; you put something in once and it stays there until you deliberately change it.
+
+The fix was to wrap the secret number generation in an `if "secret" not in st.session_state:` guard. This means the random number is only generated once — the very first time the app loads — and from then on Streamlit reads the saved value from session state instead of generating a new one.
+
 ---
 
 ## 5. Looking ahead: your developer habits
@@ -66,3 +72,9 @@ Claude helped design the test structure by suggesting that the best way to catch
   - This could be a testing habit, a prompting strategy, or a way you used Git.
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+
+One habit I want to carry forward is writing tests that assert the *negation* of a bug, not just the happy path. For the hints bug, testing that "Too High must never return Too Low" would have caught the original error immediately, whereas only testing the correct case might pass even with a subtly broken implementation. This kind of negative assertion forces the test to be specific about what failure looks like.
+
+Next time I work with AI on a coding task, I would verify each AI explanation against the actual call path in the code before accepting it. In this project, Claude's explanation of the `TypeError` block in `check_guess` sounded plausible in isolation, but tracing through `parse_guess` showed it was dead code. I accepted the explanation too quickly at first — reading the surrounding code myself before trusting the AI would have caught that faster.
+
+This project changed how I think about AI-generated code by making clear that AI can produce code that looks correct and even runs without errors while still containing subtle logic bugs. The hints bug didn't crash anything — it just silently gave wrong directions — which is exactly the kind of mistake that's easy to miss in a code review but immediately obvious when you actually play the game.

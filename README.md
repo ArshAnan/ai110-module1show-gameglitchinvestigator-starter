@@ -25,13 +25,27 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+**Purpose:**
+A Streamlit number-guessing game where the player tries to guess a secret number within a limited number of attempts. The game gives "Too High" / "Too Low" hints after each guess and tracks a score that increases on a win and decreases on wrong guesses. Difficulty settings change the number range and attempt limit.
+
+**Bugs found:**
+1. **Hints were backwards** — `check_guess` returned "Go HIGHER!" when the guess was too high and "Go LOWER!" when it was too low, pointing the player in the wrong direction every time.
+2. **Score miscalculated on even attempts** — `update_score` added 5 points on even-numbered "Too High" guesses instead of subtracting them, causing the score to jump unexpectedly.
+3. **Attempts counter off by one** — `st.session_state.attempts` was initialized to `1` instead of `0`, so the "Attempts left" display was wrong before any guess was made.
+
+**Fixes applied:**
+- Corrected the hint messages in `check_guess` so "Too High" maps to "Go LOWER!" and "Too Low" maps to "Go HIGHER!"
+- Rewrote `update_score` to always subtract 5 for any wrong guess, regardless of attempt number.
+- Changed the attempts initializer from `1` to `0`.
+- Refactored all game logic out of `app.py` and into `logic_utils.py` to separate UI from logic and make functions independently testable.
 
 ## 📸 Demo
 
-- [ ] [Insert a screenshot of your fixed, winning game here]
+- [ ] ![Winning Game](image-1.png)
+
+## ✅ Challenge 1: Edge-Case Test Results
+
+- [ ] ![All Tests Pass for Challenge 1](image.png)
 
 ## 🚀 Stretch Features
 

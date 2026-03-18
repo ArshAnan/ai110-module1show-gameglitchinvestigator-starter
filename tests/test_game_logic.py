@@ -65,3 +65,64 @@ def test_parse_guess_non_number():
     ok, value, err = parse_guess("abc")
     assert ok is False
     assert value is None
+
+# --- Challenge 1: Edge-case testing ---
+# These tests cover unusual inputs that a real player might type,
+# verifying the game handles them gracefully without crashing.
+
+# Edge case 1: Decimal input
+# A player might type "3.7" instead of "3". The game should truncate it to an
+# integer rather than rejecting it or crashing.
+def test_parse_guess_decimal_truncates_to_int():
+    ok, value, err = parse_guess("3.7")
+    assert ok is True
+    assert value == 3
+    assert err is None
+
+def test_parse_guess_decimal_zero():
+    # "0.9" should truncate to 0, not round to 1
+    ok, value, err = parse_guess("0.9")
+    assert ok is True
+    assert value == 0
+
+# Edge case 2: Negative numbers
+# A player might type "-5". parse_guess should accept it (it's a valid int),
+# and check_guess should correctly return "Too Low" since any negative number
+# is below a secret in the range 1–100.
+def test_parse_guess_negative_number():
+    ok, value, err = parse_guess("-5")
+    assert ok is True
+    assert value == -5
+    assert err is None
+
+def test_check_guess_negative_is_too_low():
+    # -5 is always below any positive secret
+    result = check_guess(-5, 50)
+    assert result == "Too Low"
+
+# Edge case 3: Extremely large numbers
+# A player might type "999999". The game should parse it and return "Too High"
+# without crashing or behaving unexpectedly.
+def test_parse_guess_very_large_number():
+    ok, value, err = parse_guess("999999")
+    assert ok is True
+    assert value == 999999
+    assert err is None
+
+def test_check_guess_very_large_is_too_high():
+    result = check_guess(999999, 50)
+    assert result == "Too High"
+
+# Edge case 4: Whitespace-only input
+# A player who presses space then submits should get a clean error, not a crash.
+def test_parse_guess_whitespace_only():
+    ok, value, err = parse_guess("   ")
+    assert ok is False
+    assert value is None
+
+# Edge case 5: Score going negative
+# If a player makes many wrong guesses, the score can drop below zero.
+# update_score should handle this without crashing.
+def test_score_can_go_negative():
+    result = update_score(3, "Too Low", 1)
+    assert result == -2
